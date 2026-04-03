@@ -1,131 +1,528 @@
-# ============================================================
-# Our Family Memories - Main Streamlit App (OAuth 2.0)
-# ============================================================
 
+# ============================================================
+# Setup secrets for Streamlit Cloud
+# ============================================================
+try:
+    from setup_secrets import setup_credentials
+    setup_credentials()
+except Exception:
+    pass
+
+# ============================================================
+# Our Family Memories - World Class UI (OAuth 2.0)
+# ============================================================
 import streamlit as st
 import os
 import mimetypes
+from datetime import datetime
 from config import (
     APP_NAME, APP_ICON, APP_SUBTITLE, APP_PASSWORD,
     IMAGE_TYPES, VIDEO_TYPES, GRID_COLUMNS, CREDENTIALS_FILE, TOKEN_FILE
 )
 
-# ---- Page Config ----
-st.set_page_config(
-    page_title=APP_NAME,
-    page_icon=APP_ICON,
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title=APP_NAME, page_icon=APP_ICON, layout="wide", initial_sidebar_state="expanded")
 
-# ---- Custom CSS ----
+# ============================================================
+# WORLD CLASS CSS
+# ============================================================
 st.markdown("""
 <style>
-    html, body, [class*="css"] {
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .stApp {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        color: #f0f0f0;
-    }
-    .login-card {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(233,30,140,0.3);
-        border-radius: 20px;
-        padding: 3rem;
-        text-align: center;
-        backdrop-filter: blur(10px);
-        max-width: 420px;
-        margin: auto;
-    }
-    .login-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #E91E8C, #ff6b9d);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .login-subtitle { color: #aaa; margin-bottom: 2rem; }
-    .app-header {
-        background: linear-gradient(90deg, rgba(233,30,140,0.2), rgba(255,107,157,0.1));
-        border-bottom: 2px solid rgba(233,30,140,0.4);
-        padding: 1.2rem 2rem;
-        border-radius: 0 0 15px 15px;
-        margin-bottom: 1.5rem;
-    }
-    .app-title {
-        font-size: 2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #E91E8C, #ff6b9d);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0;
-    }
-    .app-subtitle-small { color: #bbb; font-size: 0.85rem; margin: 0; }
-    .media-card {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(233,30,140,0.2);
-        border-radius: 14px;
-        padding: 0.6rem;
-        margin-bottom: 1rem;
-        overflow: hidden;
-        transition: transform 0.2s, border-color 0.2s;
-    }
-    .media-card:hover { transform: scale(1.02); border-color: rgba(233,30,140,0.7); }
-    .media-filename {
-        color: #ddd; font-size: 0.75rem; text-align: center;
-        margin-top: 0.4rem; white-space: nowrap;
-        overflow: hidden; text-overflow: ellipsis;
-    }
-    .album-card {
-        background: rgba(233,30,140,0.1);
-        border: 1px solid rgba(233,30,140,0.3);
-        border-radius: 14px; padding: 1.2rem;
-        text-align: center; margin-bottom: 1rem;
-        transition: all 0.2s;
-    }
-    .album-card:hover {
-        background: rgba(233,30,140,0.25);
-        border-color: #E91E8C; transform: translateY(-3px);
-    }
-    .section-title {
-        font-size: 1.5rem; font-weight: 700; color: #ff6b9d;
-        border-left: 4px solid #E91E8C;
-        padding-left: 0.75rem; margin-bottom: 1.2rem;
-    }
-    .connect-card {
-        background: rgba(255,255,255,0.05);
-        border: 2px solid rgba(233,30,140,0.4);
-        border-radius: 20px; padding: 3rem;
-        text-align: center; max-width: 500px; margin: auto;
-    }
-    .stat-chip {
-        background: rgba(233,30,140,0.15);
-        border: 1px solid rgba(233,30,140,0.3);
-        border-radius: 20px; padding: 0.3rem 0.9rem;
-        color: #ff6b9d; font-size: 0.85rem;
-        display: inline-block; margin-right: 0.5rem;
-    }
-    [data-testid="stSidebar"] {
-        background: rgba(15,15,35,0.95);
-        border-right: 1px solid rgba(233,30,140,0.2);
-    }
-    .sidebar-logo { text-align: center; padding: 1rem 0 0.5rem 0; font-size: 2.5rem; }
-    .sidebar-title { text-align: center; font-size: 1rem; font-weight: 700; color: #ff6b9d; margin-bottom: 1.5rem; }
-    .stButton > button {
-        background: linear-gradient(90deg, #E91E8C, #ff6b9d);
-        color: white; border: none; border-radius: 25px;
-        padding: 0.5rem 1.5rem; font-weight: 600; transition: opacity 0.2s;
-    }
-    .stButton > button:hover { opacity: 0.85; color: white; }
-    .stTextInput > div > div > input {
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(233,30,140,0.4);
-        border-radius: 10px; color: white;
-    }
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+* { font-family: 'Poppins', sans-serif !important; }
+
+:root {
+    --primary: #E91E8C;
+    --secondary: #7B2FBE;
+    --accent: #FFD700;
+    --bg: #0a0a1a;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(233,30,140,0.3);
+    --text: #ffffff;
+    --subtext: #a0a0c0;
+    --success: #00ff88;
+    --glow: 0 0 20px rgba(233,30,140,0.5);
+}
+
+html, body, [class*="css"] { background-color: var(--bg) !important; color: var(--text) !important; }
+
+.stApp {
+    background: linear-gradient(135deg, #0a0a1a 0%, #0d0d2b 30%, #1a0a2e 60%, #0a1a2e 100%) !important;
+    min-height: 100vh;
+}
+
+/* === ANIMATED BG === */
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(233,30,140,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(123,47,190,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255,215,0,0.02) 0%, transparent 50%);
+    animation: bgPulse 8s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+@keyframes bgPulse {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(2deg); }
+}
+
+/* === GLASSMORPHISM CARD === */
+.glass-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(233,30,140,0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #E91E8C, #7B2FBE, transparent);
+    opacity: 0.7;
+}
+.glass-card:hover {
+    border-color: rgba(233,30,140,0.6);
+    box-shadow: 0 0 30px rgba(233,30,140,0.2), 0 20px 60px rgba(0,0,0,0.3);
+    transform: translateY(-5px);
+}
+
+/* === GRADIENT TEXT === */
+.gradient-text {
+    background: linear-gradient(90deg, #E91E8C, #7B2FBE, #FFD700, #E91E8C);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s linear infinite;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* === LOGIN PAGE === */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+.login-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(233,30,140,0.3);
+    border-radius: 30px;
+    padding: 3.5rem;
+    text-align: center;
+    backdrop-filter: blur(30px);
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 25px 80px rgba(233,30,140,0.15), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+}
+.login-card::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(123,47,190,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+.login-emoji { font-size: 5rem; animation: float 3s ease-in-out infinite; display: block; margin-bottom: 1rem; }
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+.login-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #E91E8C, #ff6b9d, #7B2FBE);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.3rem;
+}
+.login-subtitle { color: #a0a0c0; font-size: 0.95rem; margin-bottom: 2rem; }
+
+/* === STAT CARDS === */
+.stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(233,30,140,0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 0 40px rgba(233,30,140,0.3);
+    border-color: rgba(233,30,140,0.6);
+}
+.stat-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, #E91E8C, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+.stat-label { color: #a0a0c0; font-size: 0.85rem; margin-top: 0.3rem; font-weight: 500; }
+
+/* === MEDIA CARDS === */
+.media-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    position: relative;
+}
+.media-card:hover {
+    border-color: rgba(233,30,140,0.5);
+    box-shadow: 0 0 25px rgba(233,30,140,0.2);
+    transform: scale(1.02);
+}
+.media-info {
+    padding: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.media-name {
+    color: #e0e0f0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* === ALBUM CARDS === */
+.album-card {
+    background: linear-gradient(135deg, rgba(233,30,140,0.1), rgba(123,47,190,0.1));
+    border: 1px solid rgba(233,30,140,0.25);
+    border-radius: 20px;
+    padding: 1.8rem 1.2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.album-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(233,30,140,0.05), rgba(123,47,190,0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.album-card:hover {
+    transform: translateY(-8px);
+    border-color: #E91E8C;
+    box-shadow: 0 0 40px rgba(233,30,140,0.3), 0 20px 60px rgba(0,0,0,0.3);
+}
+.album-card:hover::before { opacity: 1; }
+.album-emoji { font-size: 3rem; display: block; margin-bottom: 0.8rem; }
+.album-name { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+.album-count {
+    display: inline-block;
+    background: rgba(233,30,140,0.2);
+    border: 1px solid rgba(233,30,140,0.3);
+    border-radius: 20px;
+    padding: 0.15rem 0.7rem;
+    color: #ff6b9d;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* === SECTION HEADERS === */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(233,30,140,0.2);
+}
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #E91E8C, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+.section-badge {
+    background: rgba(233,30,140,0.15);
+    border: 1px solid rgba(233,30,140,0.3);
+    border-radius: 20px;
+    padding: 0.15rem 0.75rem;
+    color: #ff6b9d;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* === UPLOAD AREA === */
+.upload-area {
+    background: rgba(233,30,140,0.03);
+    border: 2px dashed rgba(233,30,140,0.4);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+.upload-area:hover {
+    border-color: #E91E8C;
+    background: rgba(233,30,140,0.07);
+}
+.upload-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.upload-text { color: #ff6b9d; font-size: 1.1rem; font-weight: 600; }
+.upload-subtext { color: #a0a0c0; font-size: 0.85rem; margin-top: 0.3rem; }
+
+/* === TIMELINE === */
+.timeline-month {
+    background: rgba(233,30,140,0.08);
+    border-left: 3px solid #E91E8C;
+    border-radius: 0 12px 12px 0;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1rem;
+    color: #ff6b9d;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* === SLIDESHOW === */
+.slideshow-container {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(233,30,140,0.3);
+    border-radius: 20px;
+    padding: 1rem;
+    text-align: center;
+}
+.slideshow-counter {
+    color: #a0a0c0;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+.slideshow-name {
+    color: #ff6b9d;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* === QUICK ACTION BUTTONS === */
+.quick-action {
+    background: linear-gradient(135deg, rgba(233,30,140,0.15), rgba(123,47,190,0.15));
+    border: 1px solid rgba(233,30,140,0.3);
+    border-radius: 16px;
+    padding: 1.2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.quick-action:hover {
+    background: linear-gradient(135deg, rgba(233,30,140,0.3), rgba(123,47,190,0.3));
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(233,30,140,0.3);
+}
+.quick-icon { font-size: 2rem; display: block; }
+.quick-label { color: #e0e0f0; font-size: 0.85rem; font-weight: 600; margin-top: 0.4rem; }
+
+/* === GREETING BANNER === */
+.greeting-banner {
+    background: linear-gradient(135deg, rgba(233,30,140,0.15) 0%, rgba(123,47,190,0.15) 50%, rgba(255,215,0,0.05) 100%);
+    border: 1px solid rgba(233,30,140,0.25);
+    border-radius: 20px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.greeting-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #E91E8C, #7B2FBE, #FFD700);
+}
+.greeting-time { color: #a0a0c0; font-size: 0.85rem; }
+.greeting-main {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #E91E8C, #ff6b9d, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.2rem;
+}
+.greeting-sub { color: #c0c0d8; font-size: 0.95rem; }
+
+/* === SEARCH BAR === */
+.stTextInput > div > div > input {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(233,30,140,0.3) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    padding: 0.6rem 1rem !important;
+    transition: all 0.3s ease !important;
+}
+.stTextInput > div > div > input:focus {
+    border-color: #E91E8C !important;
+    box-shadow: 0 0 20px rgba(233,30,140,0.3) !important;
+}
+
+/* === SELECT BOX === */
+.stSelectbox > div > div {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(233,30,140,0.3) !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+
+/* === BUTTONS === */
+.stButton > button {
+    background: linear-gradient(135deg, #E91E8C, #7B2FBE) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(233,30,140,0.3) !important;
+}
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(233,30,140,0.5) !important;
+    opacity: 0.95 !important;
+}
+
+/* === SIDEBAR === */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0d0d25 0%, #0a0a1a 100%) !important;
+    border-right: 1px solid rgba(233,30,140,0.2) !important;
+}
+[data-testid="stSidebar"] .stButton > button {
+    background: transparent !important;
+    border: 1px solid rgba(233,30,140,0.15) !important;
+    border-radius: 12px !important;
+    color: #c0c0d8 !important;
+    text-align: left !important;
+    padding: 0.6rem 1rem !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(233,30,140,0.15) !important;
+    border-color: rgba(233,30,140,0.4) !important;
+    color: #ff6b9d !important;
+    transform: translateX(5px) !important;
+    box-shadow: none !important;
+}
+.sidebar-logo {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem 0;
+    font-size: 3rem;
+    animation: float 3s ease-in-out infinite;
+}
+.sidebar-appname {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #E91E8C, #7B2FBE);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.2rem;
+}
+.sidebar-tagline { text-align: center; color: #606080; font-size: 0.7rem; margin-bottom: 1.2rem; }
+.sidebar-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(233,30,140,0.3), transparent);
+    margin: 0.8rem 0;
+}
+.sidebar-section-label { color: #505070; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 0.3rem 0; }
+
+/* === PROGRESS BAR === */
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, #E91E8C, #7B2FBE) !important;
+    border-radius: 10px !important;
+}
+
+/* === EXPANDER === */
+.streamlit-expanderHeader {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(233,30,140,0.2) !important;
+    border-radius: 12px !important;
+    color: #ff6b9d !important;
+}
+
+/* === HIDE STREAMLIT DEFAULTS === */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.stDeployButton {display: none;}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a1a; }
+::-webkit-scrollbar-thumb { background: linear-gradient(#E91E8C, #7B2FBE); border-radius: 3px; }
+
+/* === FAVORITE BADGE === */
+.fav-badge {
+    display: inline-block;
+    background: rgba(255,215,0,0.15);
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: 20px;
+    padding: 0.1rem 0.5rem;
+    color: #FFD700;
+    font-size: 0.7rem;
+}
+
+/* === INFO CHIPS === */
+.info-chip {
+    display: inline-block;
+    background: rgba(233,30,140,0.1);
+    border: 1px solid rgba(233,30,140,0.25);
+    border-radius: 20px;
+    padding: 0.25rem 0.8rem;
+    color: #ff6b9d;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+}
+
+/* === ABOUT CARD === */
+.about-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(233,30,140,0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,25 +530,36 @@ st.markdown("""
 # ============================================================
 # SESSION STATE
 # ============================================================
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "drive_service" not in st.session_state:
-    st.session_state.drive_service = None
-if "root_folder_id" not in st.session_state:
-    st.session_state.root_folder_id = None
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "🏠 Home"
-if "selected_album" not in st.session_state:
-    st.session_state.selected_album = None
-if "drive_connected" not in st.session_state:
-    st.session_state.drive_connected = False
+defaults = {
+    "authenticated": False,
+    "drive_service": None,
+    "root_folder_id": None,
+    "current_page": "🏠 Home",
+    "selected_album": None,
+    "drive_connected": False,
+    "favorites": set(),
+    "slideshow_index": 0,
+    "all_files_cache": None,
+}
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 
 # ============================================================
-# CONNECT TO GOOGLE DRIVE
+# HELPERS
 # ============================================================
+def get_greeting():
+    h = datetime.now().hour
+    if h < 12:
+        return "Good Morning", "☀️"
+    elif h < 17:
+        return "Good Afternoon", "🌤️"
+    else:
+        return "Good Evening", "🌙"
+
+
 def connect_drive():
-    """Connect to Google Drive using OAuth 2.0."""
     try:
         from google_drive_helper import authenticate, get_or_create_root_folder
         service = authenticate()
@@ -165,119 +573,12 @@ def connect_drive():
         return False
 
 
-# ============================================================
-# PAGE: LOGIN
-# ============================================================
-def login_page():
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown(f"""
-        <div class="login-card">
-            <div style="font-size:4rem;">💖</div>
-            <div class="login-title">{APP_NAME}</div>
-            <div class="login-subtitle">{APP_SUBTITLE}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-        password = st.text_input("🔑 Enter Family Password", type="password", placeholder="Enter password...")
-        if st.button("✨ Enter Our World", use_container_width=True):
-            if password == APP_PASSWORD:
-                st.session_state.authenticated = True
-                st.rerun()
-            else:
-                st.error("❌ Incorrect password. Please try again.")
-        st.markdown("<p style='color:#666;font-size:0.8rem;text-align:center;margin-top:1rem;'>🔒 Private — For Family Only</p>", unsafe_allow_html=True)
-
-
-# ============================================================
-# PAGE: CONNECT GOOGLE DRIVE (OAuth)
-# ============================================================
-def connect_drive_page():
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("""
-        <div class="connect-card">
-            <div style="font-size:4rem;">☁️</div>
-            <h2 style="color:#ff6b9d;margin-bottom:0.5rem;">Connect Google Drive</h2>
-            <p style="color:#aaa;margin-bottom:2rem;">
-                Connect your personal Google Drive to store and access your family memories securely.
-            </p>
-            <div style="background:rgba(233,30,140,0.1);border-radius:12px;padding:1rem;text-align:left;margin-bottom:1.5rem;">
-                <p style="color:#ff6b9d;font-weight:600;margin-bottom:0.5rem;">📋 Before clicking connect:</p>
-                <p style="color:#ccc;font-size:0.9rem;">
-                    ✅ Make sure <b>client_secrets.json</b> is in the app folder<br>
-                    ✅ A browser window will open to sign in<br>
-                    ✅ Sign in with your Google account<br>
-                    ✅ Click <b>"Allow"</b> to grant access<br>
-                    ✅ Come back here — you're done!
-                </p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        if not os.path.exists(CREDENTIALS_FILE):
-            st.error(f"⚠️ `{CREDENTIALS_FILE}` not found in app folder! Please follow the README setup guide.")
-            st.info("📖 Check README.md for instructions on how to download client_secrets.json from Google Cloud Console.")
-        else:
-            if st.button("🔗 Connect to Google Drive", use_container_width=True):
-                with st.spinner("Opening Google login in your browser..."):
-                    success = connect_drive()
-                if success:
-                    st.success("✅ Google Drive connected successfully!")
-                    st.balloons()
-                    st.rerun()
-
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-def sidebar():
-    with st.sidebar:
-        st.markdown('<div class="sidebar-logo">💖</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="sidebar-title">{APP_NAME}</div>', unsafe_allow_html=True)
-        st.markdown("---")
-
-        pages = ["🏠 Home", "📸 Gallery", "📁 Albums", "⬆️ Upload", "ℹ️ About"]
-        for page in pages:
-            if st.button(page, key=f"nav_{page}", use_container_width=True):
-                st.session_state.current_page = page
-                st.session_state.selected_album = None
-                st.rerun()
-
-        st.markdown("---")
-
-        # Storage info
-        if st.session_state.drive_service:
-            try:
-                from google_drive_helper import get_storage_info
-                used, total = get_storage_info(st.session_state.drive_service)
-                if total > 0:
-                    pct = (used / total) * 100
-                    st.markdown("**💾 Storage**")
-                    st.progress(min(pct / 100, 1.0))
-                    st.markdown(f"<small style='color:#aaa'>{used} GB / {total} GB used</small>", unsafe_allow_html=True)
-            except Exception:
-                pass
-
-        st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
-
-
-# ============================================================
-# HELPER: Display Media Card
-# ============================================================
-def display_media_card(file, service):
+def display_media_card(file, service, show_fav=True):
     from google_drive_helper import download_file
-    mime = file.get("mimeType", "")
-    name = file.get("name", "Unknown")
-    file_id = file["id"]
+    mime  = file.get("mimeType", "")
+    name  = file.get("name", "Unknown")
+    fid   = file["id"]
+    is_fav = fid in st.session_state.favorites
 
     st.markdown('<div class="media-card">', unsafe_allow_html=True)
     try:
@@ -286,117 +587,263 @@ def display_media_card(file, service):
             if thumb:
                 st.image(thumb.replace("s220", "s400"), use_container_width=True)
             else:
-                img_bytes = download_file(service, file_id)
-                st.image(img_bytes, use_container_width=True)
+                st.image(download_file(service, fid), use_container_width=True)
         elif "video" in mime:
-            video_bytes = download_file(service, file_id)
-            st.video(video_bytes)
+            st.video(download_file(service, fid))
     except Exception:
-        st.markdown("<div style='color:#aaa;text-align:center;padding:1rem;'>⚠️ Preview unavailable</div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#a0a0c0;text-align:center;padding:2rem;font-size:2rem;'>🖼️</div>", unsafe_allow_html=True)
 
-    st.markdown(f'<div class="media-filename">📄 {name}</div>', unsafe_allow_html=True)
-
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown(f'<div class="media-name">📄 {name}</div>', unsafe_allow_html=True)
+    with col2:
+        if show_fav:
+            fav_icon = "💛" if is_fav else "🤍"
+            if st.button(fav_icon, key=f"fav_{fid}_{name}", help="Add to Favorites"):
+                if fid in st.session_state.favorites:
+                    st.session_state.favorites.discard(fid)
+                else:
+                    st.session_state.favorites.add(fid)
+                st.rerun()
     try:
-        file_bytes = download_file(service, file_id)
-        st.download_button(
-            label="⬇️ Download",
-            data=file_bytes,
-            file_name=name,
-            mime=mime,
-            key=f"dl_{file_id}",
-            use_container_width=True
-        )
+        file_bytes = download_file(service, fid)
+        st.download_button("⬇️", data=file_bytes, file_name=name, mime=mime, key=f"dl_{fid}_{name}", use_container_width=True)
     except Exception:
         pass
     st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ============================================================
+# PAGE: LOGIN
+# ============================================================
+def login_page():
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.5, 1])
+    with c2:
+        st.markdown(f"""
+        <div class="login-card">
+            <span class="login-emoji">💖</span>
+            <div class="login-title">{APP_NAME}</div>
+            <div class="login-subtitle">{APP_SUBTITLE}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        pwd = st.text_input("🔑 Family Password", type="password", placeholder="Enter your family password...")
+        if st.button("✨ Enter Our World", use_container_width=True):
+            if pwd == APP_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("❌ Incorrect password!")
+        st.markdown("<p style='color:#505070;font-size:0.8rem;text-align:center;margin-top:1rem;'>🔒 Private — Family Only</p>", unsafe_allow_html=True)
+
+
+# ============================================================
+# PAGE: CONNECT DRIVE
+# ============================================================
+def connect_drive_page():
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.5, 1])
+    with c2:
+        st.markdown("""
+        <div class="login-card">
+            <span class="login-emoji">☁️</span>
+            <div class="login-title">Connect Drive</div>
+            <div class="login-subtitle">Connect your Google Drive to store memories</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        if not os.path.exists(CREDENTIALS_FILE):
+            st.error(f"⚠️ `{CREDENTIALS_FILE}` not found!")
+        else:
+            if st.button("🔗 Connect to Google Drive", use_container_width=True):
+                with st.spinner("Connecting..."):
+                    if connect_drive():
+                        st.success("✅ Connected!")
+                        st.balloons()
+                        st.rerun()
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+def sidebar():
+    with st.sidebar:
+        st.markdown('<div class="sidebar-logo">💖</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sidebar-appname">{APP_NAME}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-tagline">Cherish Every Moment</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="sidebar-section-label">📍 Navigation</div>', unsafe_allow_html=True)
+        pages = [
+            ("🏠 Home", "🏠 Home"),
+            ("🖼️ Gallery", "🖼️ Gallery"),
+            ("📁 Albums", "📁 Albums"),
+            ("⬆️ Upload", "⬆️ Upload"),
+            ("🗓️ Timeline", "🗓️ Timeline"),
+            ("💛 Favorites", "💛 Favorites"),
+            ("🎬 Slideshow", "🎬 Slideshow"),
+            ("ℹ️ About", "ℹ️ About"),
+        ]
+        for label, page_key in pages:
+            if st.button(label, key=f"nav_{page_key}", use_container_width=True):
+                st.session_state.current_page = page_key
+                st.session_state.selected_album = None
+                st.rerun()
+
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-section-label">💾 Storage</div>', unsafe_allow_html=True)
+        if st.session_state.drive_service:
+            try:
+                from google_drive_helper import get_storage_info
+                used, total = get_storage_info(st.session_state.drive_service)
+                if total > 0:
+                    pct = used / total
+                    st.progress(min(pct, 1.0))
+                    st.markdown(f"<small style='color:#606080'>{used} GB / {total} GB</small>", unsafe_allow_html=True)
+            except Exception:
+                pass
+
+        fav_count = len(st.session_state.favorites)
+        if fav_count > 0:
+            st.markdown(f"<div class='info-chip'>💛 {fav_count} Favorites</div>", unsafe_allow_html=True)
+
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+        if st.button("🚪 Logout", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
+
+
+# ============================================================
 # PAGE: HOME
 # ============================================================
 def home_page():
-    st.markdown("""
-    <div class="app-header">
-        <p class="app-title">💖 Our Family Memories</p>
-        <p class="app-subtitle-small">Cherish every precious moment together</p>
-    </div>
-    """, unsafe_allow_html=True)
-
     from google_drive_helper import list_files, list_folders
     service = st.session_state.drive_service
     root_id = st.session_state.root_folder_id
 
-    all_files = list_files(service, root_id)
-    folders = list_folders(service, root_id)
-
-    photos = [f for f in all_files if "image" in f.get("mimeType", "")]
-    videos = [f for f in all_files if "video" in f.get("mimeType", "")]
-
+    greeting, emoji = get_greeting()
+    now_str = datetime.now().strftime("%A, %d %B %Y")
     st.markdown(f"""
-    <div style="margin-bottom:1.5rem;">
-        <span class="stat-chip">📸 {len(photos)} Photos</span>
-        <span class="stat-chip">🎬 {len(videos)} Videos</span>
-        <span class="stat-chip">📁 {len(folders)} Albums</span>
+    <div class="greeting-banner">
+        <div class="greeting-time">{emoji} {now_str}</div>
+        <div class="greeting-main">{greeting}, Family! 💖</div>
+        <div class="greeting-sub">Welcome back to your beautiful family memories</div>
     </div>
     """, unsafe_allow_html=True)
 
+    all_files = list_files(service, root_id)
+    folders   = list_folders(service, root_id)
+    photos    = [f for f in all_files if "image" in f.get("mimeType", "")]
+    videos    = [f for f in all_files if "video" in f.get("mimeType", "")]
+    st.session_state.all_files_cache = all_files
+
+    # Stats
+    s1, s2, s3, s4 = st.columns(4)
+    for col, icon, val, label, clr in zip(
+        [s1, s2, s3, s4],
+        ["📸", "🎬", "📁", "💛"],
+        [len(photos), len(videos), len(folders), len(st.session_state.favorites)],
+        ["Photos", "Videos", "Albums", "Favorites"],
+        ["#E91E8C", "#7B2FBE", "#FFD700", "#00ff88"]
+    ):
+        with col:
+            st.markdown(f"""
+            <div class="stat-card">
+                <span class="stat-icon">{icon}</span>
+                <div class="stat-number" style="background:linear-gradient(90deg,{clr},#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">{val}</div>
+                <div class="stat-label">{label}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Quick Actions
+    st.markdown('<div class="section-header"><span class="section-title">⚡ Quick Actions</span></div>', unsafe_allow_html=True)
+    q1, q2, q3, q4 = st.columns(4)
+    actions = [("⬆️ Upload", "⬆️ Upload", "📤", "Upload Photos & Videos"),
+               ("🖼️ Gallery", "🖼️ Gallery", "🖼️", "Browse Gallery"),
+               ("📁 Albums", "📁 Albums", "📁", "Manage Albums"),
+               ("🎬 Slideshow", "🎬 Slideshow", "🎬", "Start Slideshow")]
+    for col, (page, key, icon, label) in zip([q1, q2, q3, q4], actions):
+        with col:
+            st.markdown(f"""<div class="quick-action">
+                <span class="quick-icon">{icon}</span>
+                <div class="quick-label">{label}</div>
+            </div>""", unsafe_allow_html=True)
+            if st.button(page, key=f"qa_{key}", use_container_width=True):
+                st.session_state.current_page = page
+                st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Recent memories
     if all_files:
-        st.markdown('<div class="section-title">🌟 Recent Memories</div>', unsafe_allow_html=True)
-        recent = all_files[:6]
+        st.markdown(f'<div class="section-header"><span class="section-title">🌟 Recent Memories</span><span class="section-badge">{len(all_files[:6])} shown</span></div>', unsafe_allow_html=True)
         cols = st.columns(3)
-        for i, file in enumerate(recent):
+        for i, f in enumerate(all_files[:6]):
             with cols[i % 3]:
-                display_media_card(file, service)
+                display_media_card(f, service)
     else:
         st.markdown("""
-        <div style="text-align:center;padding:3rem;color:#aaa;">
-            <div style="font-size:4rem;">📭</div>
-            <p>No memories yet! Start by uploading photos & videos.</p>
+        <div style="text-align:center;padding:4rem;color:#505070;">
+            <div style="font-size:5rem;">📭</div>
+            <div style="font-size:1.2rem;font-weight:600;color:#a0a0c0;margin-top:1rem;">No memories yet!</div>
+            <div style="color:#606080;margin-top:0.5rem;">Start uploading your precious moments</div>
         </div>
         """, unsafe_allow_html=True)
-
-    if folders:
-        st.markdown('<div class="section-title">📁 Albums</div>', unsafe_allow_html=True)
-        album_cols = st.columns(min(len(folders), 4))
-        for i, folder in enumerate(folders[:4]):
-            with album_cols[i % 4]:
-                if st.button(f"📂 {folder['name']}", key=f"home_album_{folder['id']}", use_container_width=True):
-                    st.session_state.selected_album = folder
-                    st.session_state.current_page = "📁 Albums"
-                    st.rerun()
 
 
 # ============================================================
 # PAGE: GALLERY
 # ============================================================
 def gallery_page():
-    st.markdown('<div class="section-title">📸 Full Gallery</div>', unsafe_allow_html=True)
     from google_drive_helper import list_files
     service = st.session_state.drive_service
     root_id = st.session_state.root_folder_id
 
-    with st.spinner("Loading your memories..."):
+    st.markdown('<div class="section-header"><span class="section-title">🖼️ Gallery</span></div>', unsafe_allow_html=True)
+
+    with st.spinner("Loading memories..."):
         all_files = list_files(service, root_id)
 
-    if not all_files:
-        st.info("📭 No media found. Upload some memories first!")
+    # Controls
+    c1, c2, c3 = st.columns([2, 1.5, 1])
+    with c1:
+        search = st.text_input("🔍 Search photos...", placeholder="Type filename to search...")
+    with c2:
+        filter_opt = st.selectbox("Filter", ["All 📸🎬", "Photos Only 📸", "Videos Only 🎬", "Favorites 💛"])
+    with c3:
+        sort_opt = st.selectbox("Sort", ["Latest First", "Oldest First", "By Name"])
+
+    # Apply filters
+    files = all_files
+    if search:
+        files = [f for f in files if search.lower() in f.get("name", "").lower()]
+    if "Photos" in filter_opt:
+        files = [f for f in files if "image" in f.get("mimeType", "")]
+    elif "Videos" in filter_opt:
+        files = [f for f in files if "video" in f.get("mimeType", "")]
+    elif "Favorites" in filter_opt:
+        files = [f for f in files if f["id"] in st.session_state.favorites]
+
+    # Sort
+    if sort_opt == "Oldest First":
+        files = sorted(files, key=lambda x: x.get("createdTime", ""))
+    elif sort_opt == "By Name":
+        files = sorted(files, key=lambda x: x.get("name", "").lower())
+
+    st.markdown(f'<div style="margin-bottom:1rem;"><span class="info-chip">📊 {len(files)} items</span></div>', unsafe_allow_html=True)
+
+    if not files:
+        st.info("📭 No media found.")
         return
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        filter_type = st.selectbox("Filter", ["All", "📸 Photos Only", "🎬 Videos Only"])
-    with col2:
-        st.markdown(f"<p style='color:#aaa;margin-top:2rem;'>{len(all_files)} items total</p>", unsafe_allow_html=True)
-
-    if filter_type == "📸 Photos Only":
-        all_files = [f for f in all_files if "image" in f.get("mimeType", "")]
-    elif filter_type == "🎬 Videos Only":
-        all_files = [f for f in all_files if "video" in f.get("mimeType", "")]
-
-    cols = st.columns(GRID_COLUMNS)
-    for i, file in enumerate(all_files):
-        with cols[i % GRID_COLUMNS]:
-            display_media_card(file, service)
+    cols = st.columns(3)
+    for i, f in enumerate(files):
+        with cols[i % 3]:
+            display_media_card(f, service)
 
 
 # ============================================================
@@ -412,47 +859,49 @@ def albums_page():
         if st.button("⬅️ Back to Albums"):
             st.session_state.selected_album = None
             st.rerun()
-        st.markdown(f'<div class="section-title">📂 {album["name"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-header"><span class="section-title">📂 {album["name"]}</span></div>', unsafe_allow_html=True)
         files = list_files(service, album["id"])
         if not files:
             st.info("📭 This album is empty.")
         else:
-            cols = st.columns(GRID_COLUMNS)
-            for i, file in enumerate(files):
-                with cols[i % GRID_COLUMNS]:
-                    display_media_card(file, service)
+            cols = st.columns(3)
+            for i, f in enumerate(files):
+                with cols[i % 3]:
+                    display_media_card(f, service)
         return
 
-    st.markdown('<div class="section-title">📁 Albums</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><span class="section-title">📁 Albums</span></div>', unsafe_allow_html=True)
 
     with st.expander("➕ Create New Album"):
-        new_album_name = st.text_input("Album Name", placeholder="e.g. Birthday 2024")
-        if st.button("Create Album"):
-            if new_album_name.strip():
-                with st.spinner("Creating album..."):
-                    create_folder(service, new_album_name.strip(), root_id)
-                st.success(f"✅ Album '{new_album_name}' created!")
-                st.rerun()
-            else:
-                st.error("Please enter an album name.")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            new_name = st.text_input("Album Name", placeholder="e.g. 🎂 Birthday 2024")
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Create ✅"):
+                if new_name.strip():
+                    with st.spinner("Creating..."):
+                        create_folder(service, new_name.strip(), root_id)
+                    st.success(f"✅ '{new_name}' created!")
+                    st.rerun()
 
     folders = list_folders(service, root_id)
     if not folders:
-        st.info("📭 No albums yet. Create your first album above!")
+        st.info("📭 No albums yet.")
         return
 
     cols = st.columns(4)
     for i, folder in enumerate(folders):
         with cols[i % 4]:
-            files_in_folder = list_files(service, folder["id"])
+            count = len(list_files(service, folder["id"]))
             st.markdown(f"""
             <div class="album-card">
-                <div style="font-size:2.5rem;">📂</div>
-                <div style="color:#fff;font-weight:600;margin-top:0.4rem;">{folder["name"]}</div>
-                <div style="color:#aaa;font-size:0.8rem;">{len(files_in_folder)} items</div>
+                <span class="album-emoji">📂</span>
+                <div class="album-name">{folder["name"]}</div>
+                <span class="album-count">{count} items</span>
             </div>
             """, unsafe_allow_html=True)
-            if st.button("Open", key=f"open_{folder['id']}", use_container_width=True):
+            if st.button("Open 📂", key=f"open_{folder['id']}", use_container_width=True):
                 st.session_state.selected_album = folder
                 st.rerun()
 
@@ -461,85 +910,250 @@ def albums_page():
 # PAGE: UPLOAD
 # ============================================================
 def upload_page():
-    st.markdown('<div class="section-title">⬆️ Upload Memories</div>', unsafe_allow_html=True)
     from google_drive_helper import list_folders, upload_file
     service = st.session_state.drive_service
     root_id = st.session_state.root_folder_id
-    folders = list_folders(service, root_id)
 
+    st.markdown('<div class="section-header"><span class="section-title">⬆️ Upload Memories</span></div>', unsafe_allow_html=True)
+
+    folders = list_folders(service, root_id)
     folder_options = {"📁 Root (Family Memories)": root_id}
     for f in folders:
         folder_options[f"📂 {f['name']}"] = f["id"]
 
-    selected_folder_name = st.selectbox("📁 Upload to Album", list(folder_options.keys()))
-    target_folder_id = folder_options[selected_folder_name]
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        selected_folder = st.selectbox("📁 Upload to Album", list(folder_options.keys()))
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f'<span class="info-chip">📂 {selected_folder}</span>', unsafe_allow_html=True)
 
-    uploaded_files = st.file_uploader(
-        "📂 Choose photos or videos",
-        type=IMAGE_TYPES + VIDEO_TYPES,
-        accept_multiple_files=True,
-        help="Supported: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, MKV"
-    )
+    target_id = folder_options[selected_folder]
 
-    if uploaded_files:
-        st.markdown(f"**{len(uploaded_files)} file(s) selected**")
-        if st.button("⬆️ Upload All to Google Drive", use_container_width=True):
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            success_count = 0
-            for idx, file in enumerate(uploaded_files):
-                status_text.text(f"Uploading: {file.name}...")
+    st.markdown("""
+    <div class="upload-area">
+        <span class="upload-icon">📤</span>
+        <div class="upload-text">Drop your photos & videos here</div>
+        <div class="upload-subtext">Supports JPG, PNG, GIF, WEBP, MP4, MOV, AVI, MKV</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    uploaded = st.file_uploader("Choose files", type=IMAGE_TYPES + VIDEO_TYPES, accept_multiple_files=True, label_visibility="collapsed")
+
+    if uploaded:
+        st.markdown(f'<span class="info-chip">📎 {len(uploaded)} file(s) selected</span>', unsafe_allow_html=True)
+        # Preview
+        st.markdown("**Preview:**")
+        prev_cols = st.columns(min(len(uploaded), 4))
+        for i, uf in enumerate(uploaded[:4]):
+            with prev_cols[i]:
+                if uf.type.startswith("image"):
+                    st.image(uf, use_container_width=True, caption=uf.name[:15])
+                else:
+                    st.markdown(f'<div style="text-align:center;padding:1rem;background:rgba(123,47,190,0.1);border-radius:10px;color:#a0a0c0;">🎬<br>{uf.name[:15]}...</div>', unsafe_allow_html=True)
+
+        if st.button("⬆️ Upload All to Google Drive 🚀", use_container_width=True):
+            progress = st.progress(0)
+            status   = st.empty()
+            ok = 0
+            for idx, uf in enumerate(uploaded):
+                status.markdown(f'<span class="info-chip">Uploading: {uf.name}</span>', unsafe_allow_html=True)
                 try:
-                    mime_type, _ = mimetypes.guess_type(file.name)
-                    if not mime_type:
-                        mime_type = "application/octet-stream"
-                    upload_file(service, file.read(), file.name, mime_type, target_folder_id)
-                    success_count += 1
+                    mt, _ = mimetypes.guess_type(uf.name)
+                    upload_file(service, uf.read(), uf.name, mt or "application/octet-stream", target_id)
+                    ok += 1
                 except Exception as e:
-                    st.error(f"❌ Failed to upload {file.name}: {e}")
-                progress_bar.progress((idx + 1) / len(uploaded_files))
-            status_text.empty()
-            st.success(f"✅ Uploaded {success_count}/{len(uploaded_files)} file(s) to {selected_folder_name}!")
+                    st.error(f"❌ {uf.name}: {e}")
+                progress.progress((idx + 1) / len(uploaded))
+            status.empty()
+            st.success(f"✅ {ok}/{len(uploaded)} uploaded successfully!")
             st.balloons()
+
+
+# ============================================================
+# PAGE: TIMELINE
+# ============================================================
+def timeline_page():
+    from google_drive_helper import list_files
+    service = st.session_state.drive_service
+    root_id = st.session_state.root_folder_id
+
+    st.markdown('<div class="section-header"><span class="section-title">🗓️ Timeline</span></div>', unsafe_allow_html=True)
+
+    with st.spinner("Building your timeline..."):
+        all_files = list_files(service, root_id)
+
+    if not all_files:
+        st.info("📭 No memories found.")
+        return
+
+    # Group by month/year
+    groups = {}
+    for f in all_files:
+        ct = f.get("createdTime", "")
+        try:
+            dt = datetime.strptime(ct[:10], "%Y-%m-%d")
+            key = dt.strftime("%B %Y")
+        except Exception:
+            key = "Unknown Date"
+        groups.setdefault(key, []).append(f)
+
+    for month_label, files in groups.items():
+        st.markdown(f'<div class="timeline-month">📅 {month_label} &nbsp;·&nbsp; {len(files)} memories</div>', unsafe_allow_html=True)
+        cols = st.columns(3)
+        for i, f in enumerate(files):
+            with cols[i % 3]:
+                display_media_card(f, service)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+
+# ============================================================
+# PAGE: FAVORITES
+# ============================================================
+def favorites_page():
+    from google_drive_helper import list_files
+    service = st.session_state.drive_service
+    root_id = st.session_state.root_folder_id
+
+    st.markdown('<div class="section-header"><span class="section-title">💛 Favorites</span></div>', unsafe_allow_html=True)
+
+    if not st.session_state.favorites:
+        st.markdown("""
+        <div style="text-align:center;padding:4rem;color:#505070;">
+            <div style="font-size:5rem;">💛</div>
+            <div style="font-size:1.2rem;font-weight:600;color:#a0a0c0;margin-top:1rem;">No favorites yet!</div>
+            <div style="color:#606080;margin-top:0.5rem;">Tap 🤍 on any photo to add it here</div>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+
+    all_files = list_files(service, root_id)
+    favs = [f for f in all_files if f["id"] in st.session_state.favorites]
+
+    st.markdown(f'<span class="info-chip">💛 {len(favs)} favorites</span><br><br>', unsafe_allow_html=True)
+    cols = st.columns(3)
+    for i, f in enumerate(favs):
+        with cols[i % 3]:
+            display_media_card(f, service)
+
+
+# ============================================================
+# PAGE: SLIDESHOW
+# ============================================================
+def slideshow_page():
+    from google_drive_helper import list_files, download_file
+    service = st.session_state.drive_service
+    root_id = st.session_state.root_folder_id
+
+    st.markdown('<div class="section-header"><span class="section-title">🎬 Slideshow</span></div>', unsafe_allow_html=True)
+
+    all_files = list_files(service, root_id)
+    photos = [f for f in all_files if "image" in f.get("mimeType", "")]
+
+    if not photos:
+        st.info("📭 No photos found for slideshow.")
+        return
+
+    total = len(photos)
+    idx = st.session_state.slideshow_index % total
+    current = photos[idx]
+
+    st.markdown(f'<span class="info-chip">📸 {idx+1} of {total} photos</span><br><br>', unsafe_allow_html=True)
+
+    st.markdown('<div class="slideshow-container">', unsafe_allow_html=True)
+    try:
+        thumb = current.get("thumbnailLink")
+        if thumb:
+            st.image(thumb.replace("s220", "s800"), use_container_width=True)
+        else:
+            st.image(download_file(service, current["id"]), use_container_width=True)
+    except Exception:
+        st.markdown("<div style='padding:3rem;text-align:center;color:#a0a0c0;font-size:3rem;'>🖼️</div>", unsafe_allow_html=True)
+
+    st.markdown(f'<div class="slideshow-name">📄 {current.get("name","")}</div>', unsafe_allow_html=True)
+    ct = current.get("createdTime", "")
+    if ct:
+        try:
+            dt = datetime.strptime(ct[:10], "%Y-%m-%d").strftime("%d %B %Y")
+            st.markdown(f'<div class="slideshow-counter">📅 {dt}</div>', unsafe_allow_html=True)
+        except Exception:
+            pass
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3, c4, c5 = st.columns([1, 1, 2, 1, 1])
+    with c1:
+        if st.button("⏮️ First"):
+            st.session_state.slideshow_index = 0
+            st.rerun()
+    with c2:
+        if st.button("◀️ Prev"):
+            st.session_state.slideshow_index = (idx - 1) % total
+            st.rerun()
+    with c3:
+        st.markdown(f'<div style="text-align:center;color:#a0a0c0;padding-top:0.5rem;">{idx+1} / {total}</div>', unsafe_allow_html=True)
+    with c4:
+        if st.button("Next ▶️"):
+            st.session_state.slideshow_index = (idx + 1) % total
+            st.rerun()
+    with c5:
+        if st.button("Last ⏭️"):
+            st.session_state.slideshow_index = total - 1
+            st.rerun()
+
+    # Download current
+    st.markdown("<br>", unsafe_allow_html=True)
+    try:
+        fb = download_file(service, current["id"])
+        st.download_button("⬇️ Download This Photo", data=fb, file_name=current.get("name","photo.jpg"), use_container_width=True)
+    except Exception:
+        pass
 
 
 # ============================================================
 # PAGE: ABOUT
 # ============================================================
 def about_page():
-    st.markdown('<div class="section-title">ℹ️ About</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:2rem;border:1px solid rgba(233,30,140,0.2);">
-        <h3 style="color:#ff6b9d;">💖 Our Family Memories</h3>
-        <p style="color:#ccc;">A private, beautiful space to store, share and cherish all the precious moments of your family.</p>
-        <hr style="border-color:rgba(233,30,140,0.2);">
-        <h4 style="color:#ff6b9d;">✨ Features</h4>
-        <ul style="color:#ccc;">
-            <li>📸 View and browse photos & videos</li>
-            <li>📁 Organize memories into albums</li>
-            <li>⬆️ Upload new photos & videos from any device</li>
-            <li>☁️ Stored securely on your personal Google Drive</li>
-            <li>🔐 Password-protected for family only</li>
-            <li>⬇️ Download any memory</li>
-        </ul>
-        <hr style="border-color:rgba(233,30,140,0.2);">
-        <p style="color:#888;font-size:0.85rem;">Built with ❤️ using Python & Streamlit</p>
+    st.markdown('<div class="section-header"><span class="section-title">ℹ️ About</span></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="about-card">
+        <h2 style="background:linear-gradient(90deg,#E91E8C,#7B2FBE,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.8rem;font-weight:800;">💖 {APP_NAME}</h2>
+        <p style="color:#a0a0c0;margin-bottom:1.5rem;">{APP_SUBTITLE}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem;">
+            <span class="info-chip">🐍 Python</span>
+            <span class="info-chip">🚀 Streamlit</span>
+            <span class="info-chip">☁️ Google Drive</span>
+            <span class="info-chip">🔐 OAuth 2.0</span>
+            <span class="info-chip">🎨 Glassmorphism UI</span>
+        </div>
+        <h4 style="color:#ff6b9d;margin-bottom:1rem;">✨ Features</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div style="color:#c0c0d8;">📸 Photo Gallery</div>
+            <div style="color:#c0c0d8;">🎬 Video Player</div>
+            <div style="color:#c0c0d8;">⬆️ Easy Upload</div>
+            <div style="color:#c0c0d8;">📁 Album Management</div>
+            <div style="color:#c0c0d8;">🗓️ Timeline View</div>
+            <div style="color:#c0c0d8;">💛 Favorites</div>
+            <div style="color:#c0c0d8;">🎬 Slideshow Mode</div>
+            <div style="color:#c0c0d8;">🔍 Search & Filter</div>
+            <div style="color:#c0c0d8;">⬇️ Download</div>
+            <div style="color:#c0c0d8;">🔐 Password Protected</div>
+        </div>
+        <hr style="border-color:rgba(233,30,140,0.15);margin:1.5rem 0;">
+        <p style="color:#505070;font-size:0.85rem;text-align:center;">Made with ❤️ using Python & Streamlit</p>
     </div>
     """, unsafe_allow_html=True)
 
 
 # ============================================================
-# MAIN APP
+# MAIN
 # ============================================================
 def main():
-    # Step 1: Login check
     if not st.session_state.authenticated:
         login_page()
         return
 
-    # Step 2: Google Drive connection check
     if not st.session_state.drive_connected or st.session_state.drive_service is None:
-        # Try auto-connect with existing token
         from google_drive_helper import is_authenticated
         if is_authenticated():
             with st.spinner("Connecting to your memories..."):
@@ -549,17 +1163,23 @@ def main():
             connect_drive_page()
         return
 
-    # Step 3: Main app
     sidebar()
     page = st.session_state.current_page
+
     if page == "🏠 Home":
         home_page()
-    elif page == "📸 Gallery":
+    elif page == "🖼️ Gallery":
         gallery_page()
     elif page == "📁 Albums":
         albums_page()
     elif page == "⬆️ Upload":
         upload_page()
+    elif page == "🗓️ Timeline":
+        timeline_page()
+    elif page == "💛 Favorites":
+        favorites_page()
+    elif page == "🎬 Slideshow":
+        slideshow_page()
     elif page == "ℹ️ About":
         about_page()
 
